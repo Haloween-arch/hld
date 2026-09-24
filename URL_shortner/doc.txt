@@ -1,0 +1,20 @@
+{
+  "shortCode": "LdNfvfq8sq",
+  "shortUrl": "http://localhost:5075/LdNfvfq8sq"
+}
+
+
+
+PS D:\URL_shortner> dotnet ef migrations add InitialCreate                  
+Build started...
+Build succeeded.
+Done. To undo this action, use 'ef migrations remove'
+PS D:\URL_shortner> dotnet ef database update
+
+
+
+
+{
+  "shortCode": "LdOk3e5pZ2",
+  "shortUrl": "http://localhost:5076/LdOk3e5pZ2"
+}

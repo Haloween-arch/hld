@@ -1,0 +1,64 @@
+public AppDbContext(DbContextOptions<AppDbContext> options)
+    : base(options)
+{}
+
+Which database?
+     ↓
+PostgreSQL
+
+Which server?
+     ↓
+urlserver.postgres.database.azure.com
+
+Which database?
+     ↓
+urlshortener
+
+Credentials?
+     ↓
+configured connection string
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+    );
+});
+
+
+
+public DbSet<Url> Urls => Set<Url>();
+It tells EF Core:
+
+"There is a collection/table of Url entities that I want to work with."
+
+C#                         Database
+
+Url class      ←→          urls table
+    ↑                           ↑
+    │                           │
+    └────── AppDbContext ───────┘
+
+var urls = await _dbContext.Urls.ToListAsync();
+
+
+
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+modelBuilder.Entity<Url>(entity =>
+{
+    entity.HasKey(x => x.Id);
+Url.Id
+  ↓
+PRIMARY KEY
+
+                 AppDbContext
+                      │
+          ┌───────────┴───────────┐
+          │                       │
+     DbSet<Url>             Model Configuration
+          │                       │
+          ▼                       ▼
+      urls table          PK / Index / NOT NULL
+                                  │
+                                  ▼
+                             PostgreSQL

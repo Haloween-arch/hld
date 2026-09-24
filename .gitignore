@@ -1,0 +1,44 @@
+# Local environment and secrets
+.env
+.env.*
+*.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database local files / credentials
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.sql
+*.bak
+*.dump
+
+# Secret / config files that may contain connection strings or keys
+appsettings.json
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+config/secrets.json
+**/secrets*.json
+**/appsettings*.json
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Build / runtime artifacts
+bin/
+obj/
+*.log
+
+# Optional: keep project defaults tracked if needed
+# Uncomment the next lines only if you intentionally want to commit them
+# !appsettings.json
+# !appsettings.Development.json
