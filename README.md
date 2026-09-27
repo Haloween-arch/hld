@@ -1,57 +1,115 @@
 # HLD URL Shortener
 
-This workspace contains a simple URL shortener system with two ASP.NET Core services:
+This workspace contains a small URL shortener system built with ASP.NET Core, PostgreSQL, and YARP reverse proxying.
 
-- URL_shortner: the backend API that creates and resolves short URLs.
-- UrlShortener.LoadBalancer: a reverse proxy that distributes traffic across backend instances.
+## Overview
 
-## Architecture
+The solution demonstrates a basic load-balanced API setup:
 
-The system is designed to demonstrate a basic high-availability pattern:
-
-- The API service stores shortened links in PostgreSQL.
-- The load balancer sits in front of one or more API instances.
-- Requests are routed through the reverse proxy, which can be used to spread traffic across multiple backend nodes.
-- Each backend can expose an `X-Api-Instance` response header to confirm which instance handled the request.
+- The API project handles creating, reading, updating, and redirecting short URLs.
+- The load balancer project sits in front of the API and distributes requests across multiple API instances.
+- Each API instance can identify itself with an `X-Api-Instance` response header.
+- Redis is used as a read-through / cache-aside layer for faster URL lookups.
 
 ## Projects
 
 ### 1. URL_shortner
-This service handles URL creation and redirect logic. It exposes API endpoints for:
+This is the main backend service. It stores URLs and redirects short codes to the original domain.
 
-- creating a short URL
-- resolving a short code to the original URL
-- health checks
+Key responsibilities:
+
+- create short URLs
+- resolve short codes
+- update an existing URL mapping
+- return metadata for a short code
+- expose health endpoints
 
 ### 2. UrlShortener.LoadBalancer
-This is a YARP-based reverse proxy. It forwards incoming requests to the configured API backend(s) and is useful for demonstrating request routing and instance balancing.
+This is a YARP-based load balancer. It routes incoming traffic to the configured API destinations using round-robin behavior and health checks.
 
-## Typical Run Flow
+## Architecture
 
-1. Start the load balancer.
-2. Start one or more API instances with different `API_INSTANCE` values.
-3. Send requests through the load balancer.
-4. Observe which API instance handles the request from the response header.
+```text
+Client
+  |
+  v
+Load Balancer (YARP)
+  |
+  +--> API Instance 1 (localhost:5075)
+  |
+  +--> API Instance 2 (localhost:5076)
+```
 
-## Example
+## Run the project
+
+Start the load balancer first:
 
 ```powershell
-# Load balancer
 cd UrlShortener.LoadBalancer
 dotnet run --urls "http://localhost:5000"
+```
 
-# API 1
+Then start one or more API instances:
+
+```powershell
 cd ../URL_shortner
 $env:API_INSTANCE="API-1"
 dotnet run --urls "http://localhost:5075"
+```
 
-# API 2
+```powershell
 cd ../URL_shortner
 $env:API_INSTANCE="API-2"
 dotnet run --urls "http://localhost:5076"
 ```
 
+## Example requests
+
+Create a short URL:
+
+```http
+POST http://localhost:5000/api/urls
+Content-Type: application/json
+
+{
+  "url": "https://example.com"
+}
+```
+
+Resolve a short URL:
+
+```http
+GET http://localhost:5000/LdOk3e5pZ2
+```
+
+## API endpoints
+
+In the API project, the controller exposes:
+
+- `POST /api/urls`
+- `GET /api/urls/{shortCode}`
+- `GET /api/urls/{shortCode}/stats`
+- `PUT /api/urls/{shortCode}`
+
+## Caching strategy
+
+The API uses a cache-aside pattern with Redis:
+
+- On a lookup, the app checks Redis first using a key like `url:{shortCode}`.
+- If the key exists, it is returned immediately as a cache hit.
+- If the key is missing, the app reads from PostgreSQL, stores the result in Redis, and then returns it.
+- When a URL is updated, the matching Redis key is removed so the next request fetches the fresh value from the database.
+
+This keeps hot URLs fast while ensuring stale entries are invalidated after updates.
+
+## Configuration and security
+
+This project uses configuration files such as appsettings.json. These may contain database credentials, Redis connection strings, and other secrets, so they are intentionally excluded from Git by the root [.gitignore](.gitignore).
+
+Keep local secrets in non-committed config files or environment variables only.
+
 ## Notes
 
-- Configuration files such as appsettings JSON files are ignored by Git for local secret protection.
-- This project is intended as a learning/demo setup and can be extended with production-grade load balancing, persistence, and observability.
+- The app uses PostgreSQL via Entity Framework Core.
+- The load balancer is configured in the `ReverseProxy` section of the appsettings file.
+- This is a demo-style HLD project and can be expanded with production features such as caching, monitoring, failover, and authentication.

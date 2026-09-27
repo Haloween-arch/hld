@@ -31,4 +31,16 @@ public class UrlRepository : IUrlRepository
                 u => u.ClickCount + 1
             ));
      }
+     public async Task UpdateUrlAsync(
+    string shortCode,
+    string originalUrl)
+{
+    await _dbContext.Urls
+        .Where(u => u.ShortCode == shortCode)
+        .ExecuteUpdateAsync(setters =>
+            setters.SetProperty(
+                u => u.OriginalUrl,
+                originalUrl
+            ));
+}
 }

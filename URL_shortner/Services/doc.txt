@@ -1,0 +1,42 @@
+GET /LdOk3e5pZ2
+        │
+        ▼
+      Redis
+        │
+    ┌───┴───┐
+    │       │
+   HIT     MISS
+    │       │
+    │       ▼
+    │   PostgreSQL
+    │       │
+    │       ▼
+    │     Redis
+    │       │
+    └───┬───┘
+        ▼
+      302
+
+
+                    YARP
+                     |
+             +-------+-------+
+             |               |
+           API-1           API-2
+             |               |
+             +-------+-------+
+                     |
+                   Redis
+                     |
+                  Cache MISS
+                     |
+                     v
+                 PostgreSQL
+
+And for updates:
+
+PUT /api/urls/{shortCode}
+          |
+          +----> PostgreSQL UPDATE
+          |
+          +----> Redis DELETE

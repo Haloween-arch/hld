@@ -7,4 +7,5 @@ public interface IUrlService
     Task<string?> GetOriginalUrlAsync(string shortCode);
 
     Task<Url?> GetStatsAsync(string shortCode);
+    Task<bool> UpdateUrlAsync( string shortCode,string originalUrl);
 }

@@ -1,27 +1,49 @@
 # URL Shortener Load Balancer
 
-This project is a lightweight reverse proxy built with YARP. It sits in front of the URL shortener API instances and forwards incoming traffic to the backend service.
+This project uses YARP to route traffic to one or more backend API instances. It acts as the entry point for the URL shortener service and can distribute requests across multiple nodes.
 
 ## Purpose
 
-- centralize public entry point
-- distribute traffic across multiple API instances
-- allow testing of failover or instance-aware routing behavior
+- serve as a single front door for the app
+- distribute traffic using round-robin balancing
+- perform health checks against backend instances
+- help demonstrate a simple HLD / load-balancing pattern
 
-## Key Technology
+## Key technology
 
 - YARP Reverse Proxy
-- configuration-driven routing under `ReverseProxy`
+- configuration-based routing in the `ReverseProxy` section
+- health checks enabled for backend destinations
 
-## Run
+## Configuration
+
+The proxy configuration is stored in appsettings.json and includes:
+
+- route definitions
+- cluster definitions
+- destination addresses for each API instance
+- health check settings
+
+## Run locally
 
 ```powershell
 cd UrlShortener.LoadBalancer
 dotnet run --urls "http://localhost:5000"
 ```
 
-The proxy is configured through appsettings and related configuration sections, which should remain local to your environment and not be committed to source control.
+The default cluster points to:
 
-## Typical Setup
+- http://localhost:5075/
+- http://localhost:5076/
 
-Run multiple API instances behind the load balancer, then send requests through the proxy endpoint. The backend response header `X-Api-Instance` helps confirm which instance processed the request.
+## Example request flow
+
+```text
+Client -> http://localhost:5000 -> YARP -> API Instance 1 or 2
+```
+
+The backend sets the `X-Api-Instance` header so you can confirm which API handled the request.
+
+## Important note
+
+Keep appsettings files local and uncommitted, because they may contain routing and connection secrets.

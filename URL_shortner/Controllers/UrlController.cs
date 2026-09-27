@@ -54,4 +54,23 @@ public class UrlController : ControllerBase
 
         return Ok(url);
     }
+    [HttpPut("{shortCode}")]
+public async Task<IActionResult> UpdateUrl(
+    string shortCode,
+    [FromBody] CreateUrlRequest request)
+{
+    var updated = await _urlService.UpdateUrlAsync(
+        shortCode,
+        request.Url);
+
+    if (!updated)
+    {
+        return NotFound();
+    }
+
+    return Ok(new
+    {
+        message = "URL updated successfully"
+    });
+}
 }

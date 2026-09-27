@@ -7,4 +7,5 @@ public interface IUrlRepository
     Task<Url> CreateAsync(Url url);
 
     Task IncrementClickCountAsync(string shortCode);
+    Task UpdateUrlAsync(string shortCode, string originalUrl);
 }
